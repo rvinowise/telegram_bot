@@ -1,4 +1,4 @@
-namespace rvinowise.telegram_defender
+﻿namespace rvinowise.telegram_defender
 
 
 open System
