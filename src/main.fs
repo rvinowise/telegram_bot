@@ -18,7 +18,7 @@ module Program =
     let main(args: string[]) =
         Create_database.provide_database ()
         
-        let bot = TelegramBotClient("6749759819:AAEFg15FhTmY3EkMc4XcjoSi1GGBbruQ45A")
+        let bot = TelegramBotClient(Settings.bot_token)
         
         let receiverOptions =
             ReceiverOptions(
