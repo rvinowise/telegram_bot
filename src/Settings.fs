@@ -22,5 +22,10 @@ module Settings =
     let configuration_root = configuration_builder.Build() :> IConfiguration
     
     let bot_token =
-            configuration_root.GetValue<string>("bot_token")
+        configuration_root.GetValue<string>("bot_token")
                 
+    let minimum_accepted_score =
+        configuration_root.GetValue<int>("minimum_accepted_score")
+        
+    let maximum_questions_amount =
+        configuration_root.GetValue<int>("maximum_questions_amount")
