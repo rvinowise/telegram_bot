@@ -6,28 +6,36 @@ open Telegram.Bot.Types
 open rvinowise.telegram_defender.database_schema
 open rvinowise.telegram_defender.database_schema.tables
 
-module User_database =
+
+
+module User_questioning_database =
     
-        
+    [<CLIMutable>]
+    type Account_score_in_group = {
+        questions_amount: int
+        score: int
+    }    
+       
     let read_account_score_in_group
         (database: SQLiteConnection)
         (account: User_id)
-        (group: ChatId)
+        (group: Group_id)
         =
-        database.Query<int*int>(
+        database.Query<Account_score_in_group>(
             $"""
-            select '{account_score_in_group.questions_amount}','{account_score_in_group.score}'
-            from '{account_score_in_group}'
+            select "{account_score_in_group.questions_amount}","{account_score_in_group.score}"
+            from "{account_score_in_group}"
             where 
-                '{account_score_in_group.account}' = @account
+                "{account_score_in_group.account}" = @account
                 and 
-                '{account_score_in_group.group}' = @group
+                "{account_score_in_group.group}" = @group
             """,
             {|
                 account = account
                 group = group
             |}
         )|>Seq.tryHead
+        |>Option.map(fun record -> record.questions_amount, record.score)
         |>Option.defaultValue (0,0)
 
 
@@ -47,12 +55,12 @@ module User_database =
         
         database.Query<string>(
             $"""
-            insert or replace into '{account_score_in_group}' 
+            insert or replace into "{account_score_in_group}" 
                 (
-                    '{account_score_in_group.account}', 
-                    '{account_score_in_group.group}', 
-                    '{account_score_in_group.questions_amount}', 
-                    '{account_score_in_group.score}'
+                    "{account_score_in_group.account}", 
+                    "{account_score_in_group.group}", 
+                    "{account_score_in_group.questions_amount}", 
+                    "{account_score_in_group.score}"
                 )
             values (
                 @account,
@@ -70,19 +78,19 @@ module User_database =
         )|>ignore
 
 
-    let read_answered_questions
+    let read_tried_questions
         (database: SQLiteConnection)
         (account: User_id)
         (group)
         =
         database.Query<Question_id>(
             $"""
-            select '{question_asked.question}'
-            from '{question_asked}'
+            select "{question_tried.question}"
+            from "{question_tried}"
             where 
-                '{question_asked.account}' = @account
+                "{question_tried.account}" = @account
                 and 
-                '{question_asked.group}' = @group
+                "{question_tried.group}" = @group
             """,
             {|
                 account = account
@@ -96,10 +104,10 @@ module User_database =
         =
         database.Query<Question_id>(
             $"""
-            select '{question.id}'
-            from '{question}'
+            select "{question.id}"
+            from "{question}"
             where 
-                '{question.group}' = @group
+                "{question.group}" = @group
             """,
             {|
                 group = group

@@ -16,12 +16,12 @@ module Question_database =
         =
         database.Query<int*int>(
             $"""
-            select '{account_score_in_group.questions_amount}','{account_score_in_group.score}'
-            from '{account_score_in_group}'
+            select "{account_score_in_group.questions_amount}","{account_score_in_group.score}"
+            from "{account_score_in_group}"
             where 
-                '{account_score_in_group.account}' = @account
+                "{account_score_in_group.account}" = @account
                 and 
-                '{account_score_in_group.group}' = @group
+                "{account_score_in_group.group}" = @group
             """,
             {|
                 account = account
@@ -34,25 +34,24 @@ module Question_database =
     let write_question_body
         (database: SQLiteConnection)
         (question: Question)
-        group
         =
         database.Query<string>(
             $"""
-            insert or replace into '{tables.question}' 
+            insert or replace into "{tables.question}" 
                 (
-                    '{tables.question.id}', 
-                    '{tables.question.group}', 
-                    '{tables.question.text}', 
+                    "{tables.question.id}", 
+                    "{tables.question.group}", 
+                    "{tables.question.text}" 
                 )
             values (
                 @id,
                 @group,
-                @text,
+                @text
             );
             """,
             {|
                 id = Question.primary_key question
-                group = group
+                group = question.group
                 text = question.text
             |}
         )|>ignore
@@ -60,28 +59,27 @@ module Question_database =
     let write_question_answer
         (database: SQLiteConnection)
         (question: Question)
-        group
         (answer: Answer)
         =
         database.Query<string>(
             $"""
-            insert or replace into '{tables.question_answer}' 
+            insert or replace into "{tables.question_answer}" 
                 (
-                    '{tables.question_answer.question}', 
-                    '{tables.question_answer.group}', 
-                    '{tables.question_answer.text}', 
-                    '{tables.question_answer.score}'
+                    "{tables.question_answer.question}", 
+                    "{tables.question_answer.group}", 
+                    "{tables.question_answer.text}", 
+                    "{tables.question_answer.score}"
                 )
             values (
                 @question,
                 @group,
                 @answer,
-                @score,
+                @score
             );
             """,
             {|
                 question = Question.primary_key question
-                group = group
+                group = question.group
                 answer = answer.text
                 score = answer.score
             |}
@@ -90,19 +88,16 @@ module Question_database =
     let write_question
         (database: SQLiteConnection)
         (question: Question)
-        (group)
         =
         write_question_body
             database
             question
-            group
         
         question.answers
         |>Seq.iter(fun answer ->
             write_question_answer
                 database
                 question
-                group
                 answer
         )
         
@@ -112,10 +107,10 @@ module Question_database =
         =
         database.Query<string>(
             $"""
-            select '{tables.question.text}'
-            from '{tables.question}'
+            select "{tables.question.text}"
+            from "{tables.question}"
             where 
-                '{tables.question.id}' = @question
+                "{tables.question.id}" = @question
             """,
             {|
                 question = question
@@ -129,12 +124,12 @@ module Question_database =
         =
         database.Query<Answer>(
             $"""
-            select '{tables.question_answer.text}' '{tables.question_answer.score}'
-            from '{tables.question_answer}'
+            select "{tables.question_answer.text}", "{tables.question_answer.score}"
+            from "{tables.question_answer}"
             where 
-                '{tables.question_answer.question}' = @question
+                "{tables.question_answer.question}" = @question
                 and
-                '{tables.question_answer.group}' = @group
+                "{tables.question_answer.group}" = @group
             """,
             {|
                 question = question

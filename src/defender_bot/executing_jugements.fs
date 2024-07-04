@@ -16,8 +16,8 @@ open Telegram.Bot.Types.ReplyMarkups
 module Executing_jugements =
     let restrict_joined_stranger
         (bot: ITelegramBotClient)
-        chat
-        (stranger)
+        group
+        stranger
         =
         let muted_permissions =
             ChatPermissions(
@@ -36,11 +36,14 @@ module Executing_jugements =
                 CanSendVoiceNotes = false,
                 CanAddWebPagePreviews = false
             )
-        bot.RestrictChatMemberAsync(chat, stranger, muted_permissions)
+        bot.RestrictChatMemberAsync(
+            Group_id.value group,
+            User_id.value stranger,
+            muted_permissions)
     
     let lift_restrictions
         (bot: ITelegramBotClient)
-        chat
+        group
         (user)
         =
         let regular_permissions =
@@ -60,23 +63,28 @@ module Executing_jugements =
                 CanSendVoiceNotes = true,
                 CanAddWebPagePreviews = true
             )
-        let (User_id user_value) = user
-        bot.RestrictChatMemberAsync(chat,  user_value, regular_permissions)
+        bot.RestrictChatMemberAsync(
+            Group_id.value group,
+            User_id.value user,
+            regular_permissions
+        )
         
     let make_friend
         bot
-        chat
+        group
         user
         =
-        lift_restrictions bot chat user
+        lift_restrictions bot group user
         
     let make_foe
         (bot: ITelegramBotClient)
-        chat
+        (group: Group_id)
         user
         =
-        let (User_id user_id_value) = user
-        bot.BanChatMemberAsync(chat, user_id_value)
+        bot.BanChatMemberAsync(
+            Group_id.value group, 
+            User_id.value user
+        )
         
         
         

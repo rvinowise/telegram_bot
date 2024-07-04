@@ -16,9 +16,13 @@ module Program =
 
     [<EntryPoint>]
     let main(args: string[]) =
-        Create_database.provide_database ()
+        Log.info "bot's program has started"
+        Creating_database.ensure_database_created () |>ignore
+        loading_questions.questions_from_config_to_database() |>ignore
         
         let bot = TelegramBotClient(Settings.bot_token)
+        
+        //Preparing_commands.prepare_commands bot |>Async.AwaitTask|>ignore
         
         let receiverOptions =
             ReceiverOptions(
@@ -30,13 +34,11 @@ module Program =
             receiverOptions
         )
         
-        let unitAsync =
-            async {
-                let! user = bot.GetMeAsync()|>Async.AwaitTask
-                printf $"Start listening for @{user.Username}"
-            }
+        let user = bot.GetMeAsync()|>Async.AwaitTask
         
-        Console.ReadLine()
+        Log.important "bot is running, press any key to cancel"
+        Console.ReadLine()|>ignore
+                
         
         use cancel_token = new CancellationTokenSource()
         cancel_token.Cancel();

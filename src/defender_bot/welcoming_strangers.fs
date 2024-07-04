@@ -4,6 +4,7 @@ open System
 open System.Security
 open System.Threading
 open System.Threading.Tasks
+open FSharp.Data
 open Telegram.Bot
 open Telegram.Bot.Polling
 open Telegram.Bot.Types
@@ -35,22 +36,28 @@ module Welcoming_strangers =
     
     let user_destription (user:User) =
         let is_premium =
-            if (user.IsPremium = true) then
+            if (user.IsPremium.GetValueOrDefault(false) = true) then
                 "premium"
             else ""
         $"{user.FirstName} {user.LastName} {user.Username} id={user.Id} {is_premium}"
     
-    
-    let user_asked_to_join = "user_asked_to_join"
+    let callback_data_for_joining_button()
+        =
+        JsonValue.Record [|
+            Callback_language.action,
+            JsonValue.String Callback_language.user_asked_to_join;
+        |]|>string
     
     let handle_joined_strangers
         (bot: ITelegramBotClient)
-        chat
+        group
         (strangers: User array)
         =
         let buttons =
             [|
-                InlineKeyboardButton.WithCallbackData("Let me in", user_asked_to_join);
+                InlineKeyboardButton.WithCallbackData(
+                    "Let me in",
+                    callback_data_for_joining_button());
             |]
         
         let strangers_names =
@@ -60,23 +67,25 @@ module Welcoming_strangers =
 
         task {
             strangers
-            |>Array.map (fun user -> 
-                Executing_jugements.restrict_joined_stranger bot chat user.Id
+            |>Array.map (fun user ->
+                user.Id
+                |>User_id
+                |>Executing_jugements.restrict_joined_stranger bot group
             )
             |>ignore
             
             let! welcoming =
                 bot.SendTextMessageAsync(
-                    chat,
+                    Group_id.asChatId group,
                     ($"Hi, {strangers_names}\nTo join, prove that you're genuine by clicking a button below:"),
                     replyMarkup=InlineKeyboardMarkup(buttons)
                 )
             
-            remember_welcoming bot chat welcoming.MessageId strangers
+            remember_welcoming bot group welcoming.MessageId strangers
             
             Task.Run(fun () ->
                 Task.Delay 30000 |>Task.WaitAll
-                bot.DeleteMessageAsync(chat, welcoming.MessageId)
+                bot.DeleteMessageAsync(Group_id.asChatId group, welcoming.MessageId)
             )
             
             return welcoming
@@ -103,12 +112,6 @@ module Welcoming_strangers =
     
     
     
-    let is_stranger
-        database
-        user
-        =
-        User_database.is_genuine_member database user
-        |>not
     
     let dismiss_click
         (bot: ITelegramBotClient)
@@ -119,10 +122,17 @@ module Welcoming_strangers =
     let on_user_asked_to_join
         (bot: ITelegramBotClient)
         database
-        (user: User)
+        (user)
+        group
         click
         =
-        if (is_stranger database user.Id) then
-            Asking_questions.ask_questions_of_stranger bot database user
-        else
+        match
+            Asking_questions.questioning_result
+                database
+                user
+                group
+        with
+        |Indecisive ->
+            Asking_questions.ask_questions_of_stranger bot database group user
+        |_ ->
             dismiss_click bot click

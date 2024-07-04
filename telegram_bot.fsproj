@@ -3,31 +3,38 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>net8.0</TargetFramework>
+    <!-- so that testing framewrk would work together with the explicit main function (in Program.fs) -->
+    <GenerateProgramFile>false</GenerateProgramFile>
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="src\Logger.fs" />
     <Compile Include="src\Settings.fs" />
     
-    <Compile Include="src\Question_type.fs" />
+    <Compile Include="src\basic_types.fs" />
 
 
     <!--database  -->
+    <Compile Include="src\database\Telegram_database_type_mappers.fs" />
     <Compile Include="src\database\database_schema.fs" />
     <Compile Include="src\database\database.fs" />
-    <Compile Include="src\database\User_database.fs" />
+    <Compile Include="src\database\User_questioning_database.fs" />
+    <Compile Include="src\database\Interaction_interface_database.fs" />
     <Compile Include="src\database\Question_database.fs" />
-    
-    <Compile Include="src\loading_questions.fs" />
 
 
     <!-- bot  -->
+    <Compile Include="src\defender_bot\Preparing_commands.fs" />
     <Compile Include="src\defender_bot\executing_jugements.fs" />
     <Compile Include="src\defender_bot\asking_questions.fs" />
+    <Compile Include="src\defender_bot\loading_questions.fs" />
     <Compile Include="src\defender_bot\welcoming_strangers.fs" />
     <Compile Include="src\defender_bot\defender_bot.fs" />
     
     
-    <Compile Include="src\main.fs" />
+    <Compile Include="src\Program.fs" />
+    
+    
     
   </ItemGroup>
 
@@ -37,6 +44,13 @@
     <PackageReference Include="FSharp.Data" Version="6.4.0" />
     <PackageReference Include="JsonExtensions" Version="1.2.0" />
     <PackageReference Include="System.Data.Sqlite" Version="1.0.118" />
+
+    <!-- Logging -->
+    <PackageReference Include="Serilog" Version="4.0.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Serilog.Formatting.Compact" Version="3.0.0" />
+    <PackageReference Include="Serilog.Sinks.File" Version="6.0.0" />
+    
     
     <!-- telegram API -->
     <PackageReference Include="Telegram.Bot" Version="19.0.0" />
@@ -49,11 +63,11 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="8.0.0" />
 
     <!--unit testing  -->
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="octokit" Version="7.1.0" />
-    <PackageReference Include="xunit" Version="2.6.6" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.10.0" />
+    <PackageReference Include="octokit" Version="13.0.1" />
+    <PackageReference Include="xunit" Version="2.8.1" />
     <PackageReference Include="fsunit" Version="6.0.0" />
-    <PackageReference Include="BenchmarkDotNet" Version="0.13.7" />
+    <PackageReference Include="BenchmarkDotNet" Version="0.13.12" />
     
   </ItemGroup>
 

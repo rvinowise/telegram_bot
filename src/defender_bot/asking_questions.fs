@@ -4,6 +4,8 @@ open System
 open System.Security
 open System.Threading
 open System.Threading.Tasks
+open FSharp.Data
+open JsonExtensions
 open Telegram.Bot
 open Telegram.Bot.Polling
 open Telegram.Bot.Types
@@ -21,6 +23,34 @@ module Asking_questions =
         let rnd = System.Random ()
         items |> Seq.sortBy(fun _ -> rnd.Next(1, 52) )
     
+    let callback_data_for_answer_button_JSON
+        question
+        (answer: Answer)
+        =
+        JsonValue.Record [|
+            Callback_language.action,
+            JsonValue.String Callback_language.user_answered_question_about_group;
+            
+            Callback_language.answering_question,
+            JsonValue.Record ([| 
+                Callback_language.question_id,
+                (question |>Question.primary_key |>Question_id.value |>JsonValue.String)
+                
+                Callback_language.about_group,
+                (question.group |> Group_id.value |>decimal|>JsonValue.Number );
+                
+                Callback_language.given_answer,
+                (JsonValue.String answer.text);
+                
+            |])
+        |]|>string
+    
+    let callback_data_for_answer_button
+        question
+        (answer: Answer)
+        =
+        Guid.NewGuid().ToString()
+    
     let ask_question
         (bot: ITelegramBotClient)
         target
@@ -30,7 +60,10 @@ module Asking_questions =
             question.answers
             |>shuffle_sequence
             |>Seq.map(fun answer ->
-                InlineKeyboardButton.WithCallbackData(answer.text, answer.text);
+                InlineKeyboardButton.WithCallbackData(
+                    answer.text,
+                    (callback_data_for_answer_button question answer)
+                );
             )
             |>Array.ofSeq
         
@@ -42,25 +75,7 @@ module Asking_questions =
             replyMarkup=InlineKeyboardMarkup(buttons)
         )
     
-    let ask_questions_of_stranger
-        (bot: ITelegramBotClient)
-        database
-        (stranger: User)
-        =
-        let stranger_chat = (ChatId stranger.Id)
-        
-        task {
-            bot.SendTextMessageAsync(
-                stranger_chat,
-                sprintf "Answer questions to join %s" "the group"
-            )|>ignore
-            
-            //ask_question bot stranger_chat question1
-            //ask_question bot stranger_chat question2
-            
-            
-            
-        }:> Task
+    
         
     
     let questioning_result
@@ -69,7 +84,7 @@ module Asking_questions =
         group
         =
         let (questions_amount, score) =
-            User_database.read_account_score_in_group
+            User_questioning_database.read_account_score_in_group
                 database
                 user
                 group
@@ -82,16 +97,16 @@ module Asking_questions =
     
     let new_question_for_user
         database
+        about_group
         (user)
-        group
         =
         let answered_questions =
-            User_database.read_answered_questions
-                database user group
+            User_questioning_database.read_tried_questions
+                database user about_group
             |>Set.ofSeq
                 
         let all_group_questions =
-            User_database.read_group_questions database group
+            User_questioning_database.read_group_questions database about_group
             |>Set.ofSeq
             
         let novel_questions = 
@@ -102,9 +117,40 @@ module Asking_questions =
         |>Seq.item (Random().Next(novel_questions.Count))
         |>Question_database.read_question
             database
-            group
+            about_group
+    
+    let ask_new_question_of_user
+        (bot: ITelegramBotClient)
+        database
+        group
+        user
+        =
+        new_question_for_user database group user 
+        |>ask_question bot user :> Task
+    
+    let ask_questions_of_stranger
+        (bot: ITelegramBotClient)
+        database
+        about_group
+        (stranger: User_id)
+        =
+        let stranger_chat = (User_id.asChatId stranger)
+        
+        task {
+            bot.SendTextMessageAsync(
+                stranger_chat,
+                sprintf "Answer questions to join %s" "the group"
+            )|>ignore
+            
+            return
+                ask_new_question_of_user
+                    bot
+                    database
+                    about_group
+                    stranger
                 
-      
+        }:> Task
+     
     let on_user_answered_quesiton
         (bot: ITelegramBotClient)
         database
@@ -119,5 +165,4 @@ module Asking_questions =
         |Foe ->
             Executing_jugements.make_foe bot group user 
         |Indecisive ->
-            new_question_for_user database user group
-            |>ask_question bot user :> Task
+            ask_new_question_of_user bot database group user
