@@ -1,5 +1,6 @@
 namespace rvinowise.telegram_defender
 
+open System
 open Telegram.Bot.Types
 
 type Bot_exception(message: string) =
@@ -60,6 +61,21 @@ module Group_id =
         |>ChatId
         |>from_chat
 
+
+type Button_id = Button_id of string
+
+module Button_id =
+    let value (object:Button_id) =
+        let (Button_id value) = object
+        value
+
+    let create () =
+        Guid.NewGuid()|>string |> Button_id    
+    // let to_string (button: Button_id) =
+    //     button|>value|>string
+        
+    
+
 [<CLIMutable>]
 type Answer =
     {
@@ -83,4 +99,17 @@ module Question =
         |>sprintf "%s#%s" question.text
         |>Question_id
     
-    
+    let answer_score
+        (question:Question) 
+        answer_text
+        =
+        let answer =
+            question.answers
+            |>List.find (fun answer -> answer.text = answer_text)
+        answer.score
+
+module Nullable=
+    let to_option (n : System.Nullable<_>) = 
+        if n.HasValue then
+            Some n.Value 
+        else None      

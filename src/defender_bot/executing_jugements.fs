@@ -71,20 +71,54 @@ module Executing_jugements =
         
     let make_friend
         bot
+        database
         group
         user
         =
-        lift_restrictions bot group user
+        let language =
+            Group_policy_database.read_language database group
+        
+        let group_title =
+            Group_gist_database.read_title
+                database group
+        
+        Unauthorised_strangers_database.remove_stranger
+            database group user
+        
+        task {
+            lift_restrictions bot group user |>ignore
+            bot.SendTextMessageAsync(
+                (User_id.asChatId user),
+                (Localised_text.text_param language Localised_text.answering_success [|group_title|])
+            )|>ignore
+        }
         
     let make_foe
         (bot: ITelegramBotClient)
+        database
         (group: Group_id)
         user
         =
-        bot.BanChatMemberAsync(
-            Group_id.value group, 
-            User_id.value user
-        )
+        let language =
+            Group_policy_database.read_language database group
+        
+        let group_title =
+            Group_gist_database.read_title
+                database group
+        
+        Unauthorised_strangers_database.remove_stranger
+            database group user
+        
+        task {
+            bot.BanChatMemberAsync(
+                Group_id.value group, 
+                User_id.value user
+            )|>ignore
+            bot.SendTextMessageAsync(
+                (User_id.asChatId user),
+                (Localised_text.text_param language Localised_text.answering_fail [|group_title|])
+            )|>ignore
+        }
         
         
         

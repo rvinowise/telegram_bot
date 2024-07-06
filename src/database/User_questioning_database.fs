@@ -39,9 +39,9 @@ module User_questioning_database =
         |>Option.defaultValue (0,0)
 
 
-        
+      
     
-    let write_account_questioning_result
+    let change_account_questioning_score
         (database: SQLiteConnection)
         (account)
         (group)
@@ -52,7 +52,8 @@ module User_questioning_database =
                 database
                 account
                 group
-        
+        let new_score = previous_score + score_change
+        let answered_questions_amount = answered_questions + 1
         database.Query<string>(
             $"""
             insert or replace into "{account_score_in_group}" 
@@ -72,12 +73,62 @@ module User_questioning_database =
             {|
                 account = account
                 group = group
-                score = previous_score + score_change
-                answered_questions_amount = answered_questions + 1
+                answered_questions_amount = answered_questions_amount
+                score = new_score
             |}
         )|>ignore
+        answered_questions_amount,new_score
 
 
+    let write_asked_question
+        (database: SQLiteConnection)
+        (account: User_id)
+        (question:Question)
+        =
+        database.Query<unit>(
+            $"""
+            insert or replace into "{question_tried}" 
+                (
+                    "{question_tried.account}", 
+                    "{question_tried.question}", 
+                    "{question_tried.group}"
+                )
+            values (
+                @account,
+                @question,
+                @group
+            );
+            """,
+            {|
+                account = account
+                group = question.group
+                question = Question.primary_key question
+            |}
+        )|>ignore
+    
+    let write_given_answer_to_question
+        (database: SQLiteConnection)
+        (account: User_id)
+        (question:Question)
+        answer_id
+        =
+        database.Query<unit>(
+            $"""
+            update "{question_tried}" 
+            set "{question_tried.answer}" = @answer
+            where 
+                "{question_tried.account}" = @account
+                and "{question_tried.group}" = @group
+                and "{question_tried.question}" = @question
+            """,
+            {|
+                account = account
+                group = question.group
+                question = Question.primary_key question
+                answer = answer_id
+            |}
+        )|>ignore
+    
     let read_tried_questions
         (database: SQLiteConnection)
         (account: User_id)

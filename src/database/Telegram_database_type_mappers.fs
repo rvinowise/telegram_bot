@@ -5,6 +5,7 @@ open System.Data
 open System.Data.SqlTypes
 open Dapper
 open rvinowise.telegram_defender
+open rvinowise.telegram_defender.Localised_text
 
 
       
@@ -73,6 +74,31 @@ type Group_id_mapper() =
         Group_id (value :?> int64) 
 
 
+type Button_id_mapper() =
+    inherit SqlMapper.TypeHandler<Button_id>()
+    override this.SetValue(
+            parameter:IDbDataParameter ,
+            value: Button_id
+        )
+        =
+        parameter.Value <- Button_id.value value
+    
+    override this.Parse(value: obj) =
+         value :?> string |> Button_id
+
+
+type Language_mapper() =
+    inherit SqlMapper.TypeHandler<Language>()
+    override this.SetValue(
+            parameter:IDbDataParameter ,
+            value: Language
+        )
+        =
+        parameter.Value <- Language.to_string value
+    
+    override this.Parse(value: obj) =
+        value :?> string
+        |>Language.from_string
 
 module Telegram_database_type_mappers =
     
@@ -81,5 +107,7 @@ module Telegram_database_type_mappers =
         SqlMapper.AddTypeHandler(Question_id_mapper())
         SqlMapper.AddTypeHandler(User_id_mapper())
         SqlMapper.AddTypeHandler(Group_id_mapper())
+        SqlMapper.AddTypeHandler(Button_id_mapper())
+        SqlMapper.AddTypeHandler(Language_mapper())
         
         

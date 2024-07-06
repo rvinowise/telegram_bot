@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <Compile Include="src\Logger.fs" />
+    <Compile Include="src\Localised_text.fs" />
     <Compile Include="src\Settings.fs" />
     
     <Compile Include="src\basic_types.fs" />
@@ -17,8 +18,12 @@
     <!--database  -->
     <Compile Include="src\database\Telegram_database_type_mappers.fs" />
     <Compile Include="src\database\database_schema.fs" />
-    <Compile Include="src\database\database.fs" />
+    <Compile Include="src\database\Database.fs" />
+    <Compile Include="src\database\Creating_database.fs" />
     <Compile Include="src\database\User_questioning_database.fs" />
+    <Compile Include="src\database\Unauthorised_strangers_database.fs" />
+    <Compile Include="src\database\Group_policy_database.fs" />
+    <Compile Include="src\database\Group_gist_database.fs" />
     <Compile Include="src\database\Interaction_interface_database.fs" />
     <Compile Include="src\database\Question_database.fs" />
 
@@ -27,8 +32,9 @@
     <Compile Include="src\defender_bot\Preparing_commands.fs" />
     <Compile Include="src\defender_bot\executing_jugements.fs" />
     <Compile Include="src\defender_bot\asking_questions.fs" />
-    <Compile Include="src\defender_bot\loading_questions.fs" />
+    <Compile Include="src\defender_bot\Loading_configuration.fs" />
     <Compile Include="src\defender_bot\welcoming_strangers.fs" />
+    <Compile Include="src\defender_bot\Contacting_bot.fs" />
     <Compile Include="src\defender_bot\defender_bot.fs" />
     
     

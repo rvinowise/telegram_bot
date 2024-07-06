@@ -14,6 +14,10 @@ module Callback_language =
     [<Literal>]
     let user_asked_to_join = "user_asked_to_join"
     [<Literal>]
+    let group = "group"
+    [<Literal>]
+    let group_title = "group_title"
+    [<Literal>]
     let user_answered_question_about_group = "user_answered_question_about_group"
 
     [<Literal>]
