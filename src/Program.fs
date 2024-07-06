@@ -18,25 +18,12 @@ module Program =
     let main(args: string[]) =
         Log.info "bot's program has started"
         Creating_database.ensure_database_created () |>ignore
-        loading_questions.questions_from_config_to_database() |>ignore
+        Loading_configuration.load_configuration_to_database() |>ignore
         
-        let bot = TelegramBotClient(Settings.bot_token)
+        let result = Telegram_service.start()
         
-        //Preparing_commands.prepare_commands bot |>Async.AwaitTask|>ignore
         
-        let receiverOptions =
-            ReceiverOptions(
-                AllowedUpdates = Array.Empty<UpdateType>() // receive all update types except ChatMember related updates
-            )
-        
-        bot.StartReceiving(
-            Update_handler(),
-            receiverOptions
-        )
-        
-        let user = bot.GetMeAsync()|>Async.AwaitTask
-        
-        Log.important "bot is running, press any key to cancel"
+        Log.important "bot is running, enter any key to cancel"
         Console.ReadLine()|>ignore
                 
         

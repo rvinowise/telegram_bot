@@ -1,7 +1,9 @@
 ﻿namespace rvinowise.telegram_defender
 
+open System.Text.Json
 open Dapper
 open System.Data.SQLite
+open FSharp.Data
 open Telegram.Bot.Types
 open rvinowise.telegram_defender.database_schema
 open rvinowise.telegram_defender.database_schema.tables
@@ -69,3 +71,53 @@ module Interaction_interface_database =
             |}
         )|>ignore
 
+    let read_button_callback_data
+        (database: SQLiteConnection)
+        (button: Button_id)
+        =
+        database.Query<string>(
+            $"""
+            select "{button_callback_data.callback_data}"
+            from "{button_callback_data}"
+            where 
+                "{button_callback_data.button}" = @button
+            """,
+            {|
+                button = button
+            |}
+        )|>Seq.tryHead
+        |>function
+        |None -> None
+        |Some string_id ->
+            try
+                JsonValue.Parse(string_id)
+                |>Some
+            with
+            | :? JsonException as exc ->
+                $"button_id {Button_id.value button} can't be parsed as json: {exc.Message}"
+                |>Log.error|>ignore
+                None
+
+
+    let write_button_callback_data
+        (database: SQLiteConnection)
+        (button: Button_id)
+        (callback_data: JsonValue)
+        =
+        database.Query<unit>(
+            $"""
+            insert or replace into "{button_callback_data}" 
+                (
+                    "{button_callback_data.button}", 
+                    "{button_callback_data.callback_data}"
+                )
+            values (
+                @button,
+                @callback_data
+            );
+            """,
+            {|
+                button = button
+                callback_data = string callback_data
+            |}
+        )|>ignore

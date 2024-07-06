@@ -13,9 +13,9 @@ module Log =
                 rollOnFileSizeLimit = true, 
                 fileSizeLimitBytes = 1000000000
             )
-        #if DEBUG
+        //#if DEBUG
             .MinimumLevel.Debug()
-        #endif
+        //#endif
             .CreateLogger();
     
     let info = logger.Information

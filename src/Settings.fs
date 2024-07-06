@@ -8,10 +8,15 @@ open FSharp.Data
 
 
 module Settings =
+    
+    let bot_url = "https://t.me/transhumanist_defender_bot"
+        
+    let settings_directory =
+        DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.FullName
     let config_filename =
         Path.Combine
             [|
-                DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.FullName
+                settings_directory
                 "appsettings.json"
             |]
     

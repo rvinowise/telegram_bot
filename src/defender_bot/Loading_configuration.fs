@@ -13,7 +13,7 @@ open Telegram.Bot.Types.ReplyMarkups
 
 
 
-module loading_questions =
+module Loading_configuration =
 
     let split_errors_and_successes
         (results: Result<'a,'b> list)
@@ -92,10 +92,9 @@ module loading_questions =
             |>Result.Error
     
                 
-    let questions_from_config_to_database () =
-        
-        
-        let file = JsonValue.Load(Settings.config_filename)
+    let load_questions
+        database
+        (file: JsonValue) =
         
         let group = file.GetProperty("group").AsInteger64() |> Group_id
         
@@ -110,9 +109,6 @@ module loading_questions =
                 |>JsonException
                 |>raise
             
-            
-        let database = Database.open_connection()
-        
         questions
         |>Result.map(fun questions ->
             questions
@@ -122,7 +118,37 @@ module loading_questions =
             Log.error $"error loading questions from json: {error}"
         )
         
+    let load_group_policy
+        database
+        (file: JsonValue)
+        =
+        let group = file.GetProperty("group").AsInteger64() |> Group_id
+        let minimum_accepted_score = file.GetProperty("minimum_accepted_score").AsInteger()
+        let maximum_questions_amount = file.GetProperty("maximum_questions_amount").AsInteger()
+        Group_policy_database.write_questioning_harshness
+            database
+            group
+            minimum_accepted_score
+            maximum_questions_amount
+            
+        let language = file.GetProperty("language").AsString() |> Language.from_string
+        Group_policy_database.write_language
+            database
+            group
+            language
         
+    let load_configuration_to_database() =
+        let file = JsonValue.Load(Settings.config_filename)
+        let database = Database.open_connection()
+        
+        load_group_policy
+            database file
+        |>ignore
+            
+        load_questions
+            database file
+        |>ignore
+    
     
 module Adding_questions_about_group =
     let ask_for_a_group
