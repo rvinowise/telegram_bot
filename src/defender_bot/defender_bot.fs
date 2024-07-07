@@ -6,6 +6,7 @@ open System.Threading
 open System.Threading.Tasks
 open FSharp.Data
 open JsonExtensions
+open Microsoft.VisualStudio.TestPlatform.Common.Utilities
 open Telegram.Bot
 open Telegram.Bot.Exceptions
 open Telegram.Bot.Polling
@@ -79,6 +80,7 @@ module Handling_updates =
         (update: Update)
         (cancellationToken: CancellationToken)
         =
+        
         try
             if (update.CallbackQuery|>isNull|>not) then
                 on_button_clicked
@@ -119,7 +121,7 @@ module Handling_updates =
                     |None -> Task.CompletedTask
         with
         | exc -> //ApiRequestException
-            $"responding to a button clicked raised an exception {exc.GetType()}: {exc.Message}"
+            $"handling an update raised an exception {exc.GetType()}: {exc.Message}"
             |>Log.error|>ignore
             Task.CompletedTask    
             
@@ -160,6 +162,9 @@ module Telegram_service =
     let start () =
         let bot = TelegramBotClient(Settings.bot_token)
         
+        //use cancel_token = new CancellationTokenSource()
+        //cancel_token.Cancel();
+        
         //Preparing_commands.prepare_commands bot |>Async.AwaitTask|>ignore
         
         let receiverOptions =
@@ -167,9 +172,19 @@ module Telegram_service =
                 AllowedUpdates = Array.Empty<UpdateType>() // receive all update types except ChatMember related updates
             )
         
-        bot.StartReceiving(
-            Update_handler(),
-            receiverOptions
-        )
+        // bot.StartReceiving(
+        //     Update_handler(),
+        //     receiverOptions
+        // )
+        
+        try
+            bot.ReceiveAsync(Update_handler(),receiverOptions)|>Task.WaitAll
+        with
+        | :? InvalidCastException  as exc ->
+            $"bot was cancelled"
+            |>Log.important
+        | exc ->
+            $"bot threw an exception {exc.GetType()}: {exc.Message}"
+            |>Log.error|>ignore
         
         bot.GetMeAsync()|>Async.AwaitTask

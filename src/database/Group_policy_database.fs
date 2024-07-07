@@ -1,5 +1,6 @@
 ﻿namespace rvinowise.telegram_defender
 
+open System
 open Dapper
 open System.Data.SQLite
 open Telegram.Bot.Types
@@ -114,5 +115,47 @@ module Group_policy_database =
             {|
                 group = group;
                 language = language
+            |}
+        )
+        
+    let read_time_keeping_strangers
+        (database: SQLiteConnection)
+        (group: Group_id)
+        =
+        database.Query<TimeSpan>(
+            $"""
+            select 
+                "{group_policy.how_long_keep_strangers}"
+            from "{group_policy}"
+            where 
+                "{group_policy.group}" = @group
+            """,
+            {|
+                group = group
+            |}
+        )|>Seq.tryHead
+        |>function
+        |None ->
+            $"no language set for group {group}, default is used"
+            |>Log.error|>ignore
+            TimeSpan.MaxValue
+        |Some timespan ->
+            timespan
+            
+    let write_time_keeping_strangers
+        (database: SQLiteConnection)
+        (group: Group_id)
+        (timespan: TimeSpan)
+        =
+        database.Query<unit>(
+            $"""
+            update "{group_policy}" 
+            set "{group_policy.how_long_keep_strangers}" =  @timespan
+            where 
+                "{group_policy.group}" = @group
+            """,
+            {|
+                group = group;
+                timespan = timespan
             |}
         )

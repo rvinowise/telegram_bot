@@ -1,5 +1,6 @@
 ﻿namespace rvinowise.telegram_defender
 
+open System
 open Dapper
 open System.Data.SQLite
 open Telegram.Bot.Types
@@ -22,16 +23,19 @@ module Unauthorised_strangers_database =
             insert or ignore into "{unauthorised_stranger}" 
                 (
                     "{unauthorised_stranger.account}", 
-                    "{unauthorised_stranger.group}"
+                    "{unauthorised_stranger.group}",
+                    "{unauthorised_stranger.when_joined}"
                 )
             values (
                 @account,
-                @group
+                @group,
+                @when_joined
             );
             """,
             {|
                 account = account
                 group = group
+                when_joined = DateTime.Now
             |}
         )|>ignore
     
@@ -53,7 +57,7 @@ module Unauthorised_strangers_database =
             |}
         )|>ignore
     
-    let read_groups_in_which_stranger
+    let read_groups_in_which_user_is_stranger
         (database: SQLiteConnection)
         (account: User_id)
         =
@@ -62,10 +66,25 @@ module Unauthorised_strangers_database =
             select "{unauthorised_stranger.group}"
             from "{unauthorised_stranger}"
             where 
-                "{question_tried.account}" = @account
+                "{unauthorised_stranger.account}" = @account
             """,
             {|
                 account = account
             |}
         )
-     
+    
+    let read_old_strangers
+        (database: SQLiteConnection)
+        (older_than: TimeSpan)
+        =
+        database.Query<Group_id>(
+            $"""
+            select "{unauthorised_stranger.account}","{unauthorised_stranger.group}"
+            from "{unauthorised_stranger}"
+            where 
+                "{unauthorised_stranger.when_joined}" < @min_date
+            """,
+            {|
+                min_date = DateTime.Now - older_than
+            |}
+        )

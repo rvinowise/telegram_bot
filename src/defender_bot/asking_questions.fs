@@ -215,7 +215,7 @@ module Asking_questions =
         (user: User_id)
         =
         match 
-            Unauthorised_strangers_database.read_groups_in_which_stranger
+            Unauthorised_strangers_database.read_groups_in_which_user_is_stranger
                 database
                 user
             |>List.ofSeq

@@ -29,7 +29,7 @@ module Creating_database =
         )|>ignore
         database
     
-    let create_table_unathorised_strangers
+    let create_table_unauthorised_strangers
         (database: SQLiteConnection)
         =
         database.Query<unit>(
@@ -37,6 +37,7 @@ module Creating_database =
             CREATE TABLE if not exists "{unauthorised_stranger}" (
                 "{unauthorised_stranger.account}" INTEGER,
                 "{unauthorised_stranger.group}" INTEGER,
+                "{unauthorised_stranger.when_joined}" TIMESTAMP,
                 PRIMARY KEY(
                     "{unauthorised_stranger.account}",
                     "{unauthorised_stranger.group}"
@@ -174,4 +175,4 @@ module Creating_database =
         |>create_table_button_callback_data
         |>create_table_group_policy
         |>create_table_group_gist
-        |>create_table_unathorised_strangers
+        |>create_table_unauthorised_strangers

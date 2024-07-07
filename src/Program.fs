@@ -27,6 +27,5 @@ module Program =
         Console.ReadLine()|>ignore
                 
         
-        use cancel_token = new CancellationTokenSource()
-        cancel_token.Cancel();
+        
         0

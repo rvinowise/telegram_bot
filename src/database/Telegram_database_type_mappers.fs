@@ -10,32 +10,19 @@ open rvinowise.telegram_defender.Localised_text
 
       
 type Timestamp_mapper() =
-    (* by default, Dapper transforms time to UTC when writing to the DB,
-    but on some machines it doesn't transform it back when reading,
-    it stays as UTC *)
+    
     inherit SqlMapper.TypeHandler<DateTime>()
     override this.SetValue(
             parameter:IDbDataParameter ,
             datetime_value: DateTime
         )
         =
-        let utl_value =
-            if datetime_value.Kind = DateTimeKind.Utc then
-                datetime_value
-            else
-                let utc_offset = TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow)
-                datetime_value.Add(-utc_offset)  
-                
-        parameter.Value <- utl_value
+        parameter.Value <- Timestamp.to_mysql_string datetime_value
     
     override this.Parse(value: obj) =
         let retrieved_datetime =
-            value :?> DateTime
-        if retrieved_datetime.Kind = DateTimeKind.Utc then
-            let utc_offset = TimeZoneInfo.Local.GetUtcOffset(DateTime.UtcNow)
-            retrieved_datetime.Add(utc_offset)  
-        else
-            retrieved_datetime
+            value :?> string
+        Timestamp.from_mysql_string retrieved_datetime
 
 type Question_id_mapper() =
     inherit SqlMapper.TypeHandler<Question_id>()
@@ -103,7 +90,7 @@ type Language_mapper() =
 module Telegram_database_type_mappers =
     
     let set_telegram_type_handlers () =
-        //SqlMapper.AddTypeHandler(Timestamp_mapper()) //sometimes it's needed, sometimes not
+        SqlMapper.AddTypeHandler(Timestamp_mapper())
         SqlMapper.AddTypeHandler(Question_id_mapper())
         SqlMapper.AddTypeHandler(User_id_mapper())
         SqlMapper.AddTypeHandler(Group_id_mapper())
