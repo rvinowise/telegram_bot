@@ -1,6 +1,7 @@
 namespace rvinowise.telegram_defender
 
 open System
+open System.Globalization
 open Telegram.Bot.Types
 
 type Bot_exception(message: string) =
@@ -112,4 +113,12 @@ module Nullable=
     let to_option (n : System.Nullable<_>) = 
         if n.HasValue then
             Some n.Value 
-        else None      
+        else None
+        
+module Timestamp=
+    
+    let to_mysql_string (datetime: DateTime) =
+        datetime.ToString("yyyy-MM-dd HH:mm:ss")
+        
+    let from_mysql_string (text: string) =
+        DateTime.ParseExact(text, "yyyy-MM-dd HH:mm:ss",CultureInfo.CurrentCulture)

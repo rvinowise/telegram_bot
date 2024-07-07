@@ -10,10 +10,11 @@ type Account_score_in_group_table() =
     member _.score = "score"
     member _.questions_amount = "questions_amount"
 
-type Unathorised_strangers_table() =
-    override _.ToString() = "unathorised_strangers"
+type Unauthorised_strangers_table() =
+    override _.ToString() = "unauthorised_strangers"
     member _.account = "account"
     member _.group = "group"
+    member _.when_joined = "when_joined"
  
 type Question_answered_table() =
     override _.ToString() = "question_answered"
@@ -35,6 +36,7 @@ type Group_policy_table() =
     member _.minimum_accepted_score = "minimum_accepted_score"
     member _.maximum_questions_amount = "maximum_questions_amount"
     member _.language = "language"
+    member _.how_long_keep_strangers = "how_long_keep_strangers"
 
 type Question_answer_table() =
     override _.ToString() = "question_answer"
@@ -62,7 +64,7 @@ type Group_gist_table() =
 
 module tables =
     let account_score_in_group = Account_score_in_group_table()
-    let unauthorised_stranger = Unathorised_strangers_table()
+    let unauthorised_stranger = Unauthorised_strangers_table()
     let question_tried = Question_answered_table()
     let question = Question_table()
     let group_policy = Group_policy_table()

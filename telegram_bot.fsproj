@@ -30,7 +30,8 @@
 
     <!-- bot  -->
     <Compile Include="src\defender_bot\Preparing_commands.fs" />
-    <Compile Include="src\defender_bot\executing_jugements.fs" />
+    <Compile Include="src\defender_bot\Executing_jugements.fs" />
+    <Compile Include="src\defender_bot\Cleaning_from_old_strangers.fs" />
     <Compile Include="src\defender_bot\asking_questions.fs" />
     <Compile Include="src\defender_bot\Loading_configuration.fs" />
     <Compile Include="src\defender_bot\welcoming_strangers.fs" />
