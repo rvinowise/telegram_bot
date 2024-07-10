@@ -82,8 +82,7 @@ module Seizing_messages =
             |>String.concat "\n\n"
         
         let combined_message =
-            $"{author_description} wrote:\n
-            {all_seized_messages}"
+            $"{author_description} wrote:\n{all_seized_messages}"
              
     
         bot.SendTextMessageAsync(

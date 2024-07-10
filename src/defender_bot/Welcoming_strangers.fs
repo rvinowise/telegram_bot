@@ -67,7 +67,9 @@ module Welcoming_strangers =
             strangers
             |>Array.map Telegram_user.description_from_api_user
             |>String.concat ",\n"
-
+    
+        Log.info $"an examining button is shown for members: {strangers_names}"
+        
         task {
             
             
