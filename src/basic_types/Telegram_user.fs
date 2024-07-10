@@ -36,7 +36,7 @@ module Telegram_user_for_db =
             username =
                 match api_user.Username with
                 | null -> ""
-                | username -> $"(@%s{username})"
+                | username -> username
         }
         
 type Telegram_user =
@@ -85,7 +85,7 @@ module Telegram_user =
             | surname -> Some surname;
             match user.Username with
             | null -> None
-            | username -> Some $"(@%s{username})"
+            | username -> Some $"(@{username})"
         ]
         |>List.choose id
         |>String.concat " "
@@ -96,7 +96,7 @@ module Telegram_user =
             user.last_name;
             match user.username with
             | None -> None
-            | Some username -> Some $"(@%s{username})"
+            | Some username -> Some $"(@{username})"
         ]
         |>List.choose id
         |>String.concat " "
