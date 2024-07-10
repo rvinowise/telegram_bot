@@ -46,6 +46,24 @@ module Creating_database =
             """
         )|>ignore
         database
+    
+    let create_table_ignored_members
+        (database: SQLiteConnection)
+        =
+        database.Query<unit>(
+            $"""
+            CREATE TABLE if not exists "{ignored_member}" (
+                "{ignored_member.account}" INTEGER,
+                "{ignored_member.group}" INTEGER,
+                "{ignored_member.when_noticed}" TIMESTAMP,
+                PRIMARY KEY(
+                    "{unauthorised_stranger.account}",
+                    "{unauthorised_stranger.group}"
+                )
+            );
+            """
+        )|>ignore
+        database
         
     let create_table_question_tried
         (database: SQLiteConnection)
@@ -113,6 +131,21 @@ module Creating_database =
             """
         )|>ignore
         database
+    
+    let create_table_user_gist
+        (database: SQLiteConnection)
+        =
+        database.Query<unit>(
+            $"""
+            CREATE TABLE if not exists "{user_gist}" (
+                "{user_gist.id}" integer PRIMARY KEY,
+                "{user_gist.first_name}" text NOT NULL default '',
+                "{user_gist.last_name}" text NOT NULL default '',
+                "{user_gist.username}" text NOT NULL default ''
+            );
+            """
+        )|>ignore
+        database
       
     let create_table_question_answer
         (database: SQLiteConnection)
@@ -148,6 +181,26 @@ module Creating_database =
         )|>ignore
         database
     
+    let create_table_seized_message
+        (database: SQLiteConnection)
+        =
+        database.Query<unit>(
+            $"""
+            CREATE TABLE if not exists "{seized_message}" (
+                "{seized_message.group}" integer,
+                "{seized_message.author}" integer,
+                "{seized_message.text}" text,
+                "{seized_message.when_seized}" TIMESTAMP,
+                PRIMARY KEY(
+                    "{seized_message.group}",
+                    "{seized_message.author}",
+                    "{seized_message.text}"
+                )
+            );
+            """
+        )|>ignore
+        database
+    
     // let create_table_message_for_adding_questions_to_group
     //     (database: SQLiteConnection)
     //     =
@@ -176,3 +229,6 @@ module Creating_database =
         |>create_table_group_policy
         |>create_table_group_gist
         |>create_table_unauthorised_strangers
+        |>create_table_ignored_members
+        |>create_table_seized_message
+        |>create_table_user_gist

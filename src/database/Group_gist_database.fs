@@ -32,7 +32,7 @@ module Group_gist_database =
         |>Option.defaultValue ""
 
 
-    let write_title
+    let write_group_title
         (database: SQLiteConnection)
         (group: Group_id)
         (title: string)

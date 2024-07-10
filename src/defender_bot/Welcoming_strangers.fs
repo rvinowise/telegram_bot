@@ -26,39 +26,26 @@ module Welcoming_strangers =
         bot.DeleteMessageAsync(chat, welcoming)
     
     
-    
-    let remember_welcoming
+    let restrict_joined_strangers
         (bot: ITelegramBotClient)
-        chat
-        welcoming
-        for_users
+        database
+        group
+        (strangers: User array)
         =
-        ()
+        strangers
+        |>Array.map (fun user ->
+            user.Id
+            |>User_id
+            |>Unauthorised_strangers_database.write_joined_stranger
+                database
+                group
             
+            user.Id
+            |>User_id
+            |>Executing_jugements.restrict_joined_stranger bot group
+        )
     
-    let precise_user_destription (user:User) =
-        let is_premium =
-            if (user.IsPremium.GetValueOrDefault(false) = true) then
-                "premium"
-            else ""
-        $"{user.FirstName} {user.LastName} {user.Username} id={user.Id} {is_premium}"
-    
-    let user_destription (user:User) =
-        [
-            Some user.FirstName;
-            match user.LastName with
-            | ""|null -> None
-            | surname -> Some surname;
-            match user.Username with
-            | null -> None
-            | username -> Some $"(@%s{username})"
-        ]
-        |>List.choose id
-        |>String.concat " "
-            
-    
-    
-    let handle_joined_strangers
+    let show_examining_button
         (bot: ITelegramBotClient)
         database
         group
@@ -78,23 +65,11 @@ module Welcoming_strangers =
         
         let strangers_names =
             strangers
-            |>Array.map user_destription
+            |>Array.map Telegram_user.description_from_api_user
             |>String.concat ",\n"
 
         task {
-            strangers
-            |>Array.map (fun user ->
-                user.Id
-                |>User_id
-                |>Unauthorised_strangers_database.write_joined_stranger
-                    database
-                    group
-                
-                user.Id
-                |>User_id
-                |>Executing_jugements.restrict_joined_stranger bot group
-            )
-            |>ignore
+            
             
             let welcoming_message =
                 (Localised_text.text
@@ -136,12 +111,14 @@ module Welcoming_strangers =
                     Stranger
             )
         if (strangers.Length > 0) then
-            Group_gist_database.write_title
+            Group_gist_database.write_group_title
                 database
                 group
                 update.Message.Chat.Title
-                
-            handle_joined_strangers bot database group strangers :> Task
+            task {
+                restrict_joined_strangers bot database group strangers |>ignore
+                show_examining_button bot database group strangers |>ignore
+            } :> Task
         else
             Task.CompletedTask
     
