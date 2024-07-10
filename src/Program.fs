@@ -20,7 +20,7 @@ module Program =
         Creating_database.ensure_database_created () |>ignore
         Loading_configuration.load_configuration_to_database() |>ignore
         
-        let result = Telegram_service.start()
+        let result = Telegram_service.work_resiliently()
         
         
         Log.important "bot is running, enter any key to cancel"

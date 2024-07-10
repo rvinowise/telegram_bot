@@ -14,15 +14,7 @@ module Question_id =
         let (Question_id value) = object
         value
 
-type User_id = |User_id of int64
 
-module User_id =
-    let value (object:User_id) =
-        let (User_id value) = object
-        value
-
-    let asChatId (user: User_id) =
-        ChatId(value user)
 
 type Group_id = |Group_id of int64
 
@@ -62,6 +54,13 @@ module Group_id =
         |>ChatId
         |>from_chat
 
+module Telegram_group =
+    let try_group_from_update (update: Update) =
+        if isNull update.Message then
+            None
+        else
+            ChatId update.Message.Chat.Id
+            |>Group_id.try_from_chat //still can be a private chat with a user!
 
 type Button_id = Button_id of string
 
@@ -108,6 +107,8 @@ module Question =
             question.answers
             |>List.find (fun answer -> answer.text = answer_text)
         answer.score
+
+
 
 module Nullable=
     let to_option (n : System.Nullable<_>) = 

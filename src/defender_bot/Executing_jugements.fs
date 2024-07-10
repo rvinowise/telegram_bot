@@ -19,6 +19,7 @@ module Executing_jugements =
         group
         stranger
         =
+        $"restricting a joined stranger {stranger} in group {group}"|>Log.info
         let muted_permissions =
             ChatPermissions(
                 CanSendMessages = false,
@@ -46,6 +47,7 @@ module Executing_jugements =
         group
         (user)
         =
+        $"lifting restrictions from user {user} in group {group}"|>Log.info
         let regular_permissions =
             ChatPermissions(
                 CanSendMessages = true,
@@ -87,10 +89,13 @@ module Executing_jugements =
         
         task {
             lift_restrictions bot group user |>ignore
+            
             bot.SendTextMessageAsync(
                 (User_id.asChatId user),
                 (Localised_text.text_param language Localised_text.answering_success [|group_title|])
             )|>ignore
+            
+            Seizing_messages.publish_seized_messages bot database group user |>ignore
         }
         
     let make_foe
