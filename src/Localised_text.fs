@@ -79,8 +79,8 @@ module Localised_text =
     
     let answering_success =
         [
-            Language.Eng, "you are allowed in the group {0}";
-            Language.Rus, "вам можно быть в группе {0}";
+            Language.Eng, "it seems you're not a spamer, here's your deleted message:\n\n{0}\n\nnow you can write in {1}";
+            Language.Rus, "похоже вы не спамер, возвращаю ваше удаленное сообщение:\n\n{0}\n\nтеперь вы можете писать в {1}";
         ]|>Map.ofList
     
     let answering_fail =

@@ -83,14 +83,14 @@ module Welcoming_strangers =
             
             let! welcoming =
                 bot.SendTextMessageAsync(
-                    Group_id.asChatId group,
+                    Group_id.to_ChatId group,
                     welcoming_message,
                     replyMarkup=InlineKeyboardMarkup(buttons)
                 )
             
             Task.Run(fun () ->
                 Task.Delay 30000 |>Task.WaitAll
-                bot.DeleteMessageAsync(Group_id.asChatId group, welcoming.MessageId)
+                bot.DeleteMessageAsync(Group_id.to_ChatId group, welcoming.MessageId)
             )|>ignore
             
             return welcoming

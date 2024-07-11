@@ -55,12 +55,12 @@ module Seizing_messages =
             $"message {message_id} from stranger {author.Id} in group {group} doesn't have text, deleting it without saving"
             |>Log.info
         
-        bot.DeleteMessageAsync(Group_id.asChatId group, message_id)
+        bot.DeleteMessageAsync(Group_id.to_ChatId group, message_id)
     
     let publish_seized_messages
         (bot: ITelegramBotClient)
         database
-        group
+        group_id
         (author_id: User_id)
         =
         let author_description =
@@ -77,17 +77,28 @@ module Seizing_messages =
         let all_seized_messages =
             Seized_message_database.retrieve_seized_messages
                 database
-                group
+                group_id
                 author_id
             |>String.concat "\n\n"
         
-        let combined_message =
-            $"{author_description} wrote:\n{all_seized_messages}"
+        
              
-    
-        bot.SendTextMessageAsync(
-            (Group_id.value group),
-            combined_message
-        )
+        task {
+            let! group = bot.GetChatAsync(Group_id.to_ChatId group_id)
+            group.InviteLink
+            
+            let combined_message =
+                $"""
+                {author_description} wrote:\n{all_seized_messages}
+                
+                """
+            
+            bot.SendTextMessageAsync(
+                (Group_id.value group_id),
+                combined_message
+            )
+        }
+        
+        
     
    

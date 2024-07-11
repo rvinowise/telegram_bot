@@ -23,7 +23,7 @@ module Group_id =
         let (Group_id value) = object
         value
 
-    let asChatId (group: Group_id) =
+    let to_ChatId (group: Group_id) =
         ChatId(value group)
 
     let try_from_chat (chat: ChatId) =
