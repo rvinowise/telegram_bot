@@ -81,23 +81,16 @@ module Seizing_messages =
                 author_id
             |>String.concat "\n\n"
         
+        let combined_message =
+            $"""
+            {author_description} wrote:\n{all_seized_messages}
+            
+            """
         
-             
-        task {
-            let! group = bot.GetChatAsync(Group_id.to_ChatId group_id)
-            group.InviteLink
-            
-            let combined_message =
-                $"""
-                {author_description} wrote:\n{all_seized_messages}
-                
-                """
-            
-            bot.SendTextMessageAsync(
-                (Group_id.value group_id),
-                combined_message
-            )
-        }
+        bot.SendTextMessageAsync(
+            (Group_id.value group_id),
+            combined_message
+        )
         
         
     

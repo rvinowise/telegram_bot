@@ -9,7 +9,6 @@ open FSharp.Data
 
 module Settings =
     
-    let bot_url = "https://t.me/transhumanist_defender_bot"
         
     let settings_directory =
         DirectoryInfo(AppDomain.CurrentDomain.BaseDirectory).Parent.Parent.FullName
@@ -28,6 +27,7 @@ module Settings =
     
     let bot_token =
         configuration_root.GetValue<string>("bot_token")
+    let bot_url = configuration_root.GetValue<string>("bot_url")
                 
     let minimum_accepted_score =
         configuration_root.GetValue<int>("minimum_accepted_score")

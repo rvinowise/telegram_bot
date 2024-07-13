@@ -60,9 +60,17 @@ module Catching_strangers =
         }
             
         
-        
+    let is_message_written_by_user //as opposed to an automatic system message
+        (update: Update)
+        =
+        let message = update.Message
+        if message.NewChatMembers |>isNull|>not then
+            false
+        elif message.LeftChatMember |>isNull|>not then
+            false
+        else true
     
-    let check_new_messages
+    let check_new_written_messages
         (bot: ITelegramBotClient)
         database
         (update: Update)
@@ -84,8 +92,8 @@ module Catching_strangers =
                     author
                     group
             with
-            |Friend->Task.CompletedTask
-            |Foe->
+            |Passed->Task.CompletedTask
+            |Failed->
                 $"a foe {author} still writes messages"|>Log.error|>ignore
                 Task.CompletedTask
             |Stranger|Indecisive ->
@@ -94,5 +102,17 @@ module Catching_strangers =
                     database
                     group
                     update
+                    
+    let check_new_messages
+        (bot: ITelegramBotClient)
+        database
+        (update: Update)
+        =
+        if (is_message_written_by_user update)  then
+            check_new_written_messages
+                bot
+                database
+                update
+        else Task.CompletedTask
                 
                 

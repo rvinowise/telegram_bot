@@ -57,8 +57,8 @@ module Localised_text =
 
     let welcoming_newcomers =
         [
-            Language.Eng, "hi, {0}\nto join, contact the bot by clicking the button below:";
-            Language.Rus, "{0},\nчтобы войти, сконтактируйтесь с ботом по кнопке ниже:";
+            Language.Eng, "hi, {0}\nto write here, contact the bot by clicking the button below:";
+            Language.Rus, "{0},\nчтобы общаться здесь, сконтактируйтесь с ботом по кнопке ниже:";
         ]|>Map.ofList
     let proceed_to_answering =
         [
@@ -73,16 +73,22 @@ module Localised_text =
     
     let answer_questions_prompt =
         [
-            Language.Eng, "answer questions to join the group {0}";
-            Language.Rus, "ответьте на вопросы чтобы войти в группу {0}";
+            Language.Eng, "answer the questions to participate in group {0}";
+            Language.Rus, "ответьте на вопросы чтобы общаться в группе {0}";
         ]|>Map.ofList
     
-    let answering_success =
+    let answering_success_with_returging_message =
         [
             Language.Eng, "it seems you're not a spamer, here's your deleted message:\n\n{0}\n\nnow you can write in {1}";
             Language.Rus, "похоже вы не спамер, возвращаю ваше удаленное сообщение:\n\n{0}\n\nтеперь вы можете писать в {1}";
         ]|>Map.ofList
-    
+   
+    let answering_success_without_returning_message =
+        [
+            Language.Eng, "it seems you're not a spamer, now you can write in {0}";
+            Language.Rus, "похоже вы не спамер, теперь вы можете писать в {0}";
+        ]|>Map.ofList
+     
     let answering_fail =
         [
             Language.Eng, "your answers are wrong for the group {0}";

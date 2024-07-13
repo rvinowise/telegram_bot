@@ -81,29 +81,37 @@ module Handling_updates =
             user
     
     
+    let remember_administrators_as_ignored
+        (bot: ITelegramBotClient)
+        database
+        group
+        =
+        task {
+            let! admins = bot.GetChatAdministratorsAsync(Group_id.to_ChatId group)
+            admins
+            |>Array.iter (fun admin ->
+                admin.User.Id
+                |>User_id
+                |>Ignored_members_database.write_ignored_member
+                    database
+                    group
+            )
+        }
     
     let on_bot_added_to_group
         (bot: ITelegramBotClient)
         database
         (update: Update)
         =
-        let chatId = ChatId update.Message.Chat.Id
         let group = Telegram_group.try_group_from_update update
         $"bot is added to group {group}"|>Log.info
         
         match group with
         |Some group ->
-            task {
-                let! admins = bot.GetChatAdministratorsAsync(chatId)
-                admins
-                |>Array.iter (fun admin ->
-                    admin.User.Id
-                    |>User_id
-                    |>Ignored_members_database.write_ignored_member
-                        database
-                        group
-                )
-            }
+            remember_administrators_as_ignored
+                bot
+                database
+                group
         |None ->
             $"bot is added to group, but group is null in the update"
             |>Bot_exception|>raise

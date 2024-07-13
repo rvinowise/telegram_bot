@@ -15,8 +15,8 @@ open Telegram.Bot.Types.ReplyMarkups
 
 
 type Questioning_result =
-    |Friend
-    |Foe
+    |Passed
+    |Failed
     |Indecisive
     |Stranger
 
@@ -108,9 +108,9 @@ module Asking_questions =
         if questions_amount < questining_harshness.maximum_questions_amount then
             Indecisive
         elif score < questining_harshness.minimum_accepted_score then
-            Foe
+            Failed
         else
-            Friend
+            Passed
     let questioning_final_conclusion_from_database
         database
         (user)
@@ -255,14 +255,15 @@ module Asking_questions =
         
         match questioning_result with
             
-        |Friend ->
+        |Passed ->
             task{
                 Executing_jugements.make_friend bot database about_group user |>Task.WaitAll
                 start_questioning_about_next_group bot database user |>Task.WaitAll
             } :> Task
-        |Foe ->
+        |Failed ->
             task{
-                Executing_jugements.make_foe bot database about_group user |>Task.WaitAll
+                //Executing_jugements.make_foe bot database about_group user |>Task.WaitAll
+                Executing_jugements.announce_failure_in_test bot database about_group user |>Task.WaitAll
                 start_questioning_about_next_group bot database user |>Task.WaitAll
             } :> Task
                     

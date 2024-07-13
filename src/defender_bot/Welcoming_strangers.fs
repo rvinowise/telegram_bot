@@ -89,7 +89,7 @@ module Welcoming_strangers =
                 )
             
             Task.Run(fun () ->
-                Task.Delay 30000 |>Task.WaitAll
+                Task.Delay 40000 |>Task.WaitAll
                 bot.DeleteMessageAsync(Group_id.to_ChatId group, welcoming.MessageId)
             )|>ignore
             
