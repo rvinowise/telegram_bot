@@ -87,7 +87,9 @@ module Handling_updates =
         group
         =
         task {
-            let! admins = bot.GetChatAdministratorsAsync(Group_id.to_ChatId group)
+            let! admins =
+                Telegram.get_admins
+                    bot group
             admins
             |>Array.iter (fun admin ->
                 admin.User.Id
@@ -173,7 +175,7 @@ module Handling_updates =
         (update.Message.NewChatMembers
         |>Array.head
         |>_.Id
-        |>(=)bot.BotId.Value)
+        |>(=)bot.BotId)
         
     let is_bot_among_new_members
         (bot: ITelegramBotClient)
@@ -183,7 +185,7 @@ module Handling_updates =
         &&
         update.Message.NewChatMembers
         |>Array.map (_.Id)
-        |>Array.exists ((=)bot.BotId.Value)
+        |>Array.exists ((=)bot.BotId)
     
     let is_new_members
         (bot: ITelegramBotClient)
@@ -244,51 +246,46 @@ module Handling_updates =
         """
         |>Log.debug
         
-        try
-            if
-                is_button_clicked update
-            then
-                on_button_clicked
-                    bot
-                    database
-                    update
-                    cancellationToken
-            elif
-                is_contacting_bot update
-            then
-                on_contacting_bot
-                    bot
-                    database
-                    update
-            elif
-                is_chat_message update
-            then
-                Catching_strangers.check_new_messages
-                    bot
-                    database
-                    update
-            elif
-                is_new_members bot update
-            then
-                //Task.CompletedTask
-                on_new_members
-                    bot
-                    database
-                    update
-            elif
-                is_bot_added_to_group bot update
-            then
-                on_bot_added_to_group
-                    bot
-                    database
-                    update    
-            else
-                Task.CompletedTask
-        with
-        | exc -> //ApiRequestException
-            $"handling an update raised an exception {exc.GetType()}: {exc.Message}"
-            |>Log.error|>ignore
-            Task.CompletedTask    
+        if
+            is_button_clicked update
+        then
+            on_button_clicked
+                bot
+                database
+                update
+                cancellationToken
+        elif
+            is_contacting_bot update
+        then
+            on_contacting_bot
+                bot
+                database
+                update
+        elif
+            is_chat_message update
+        then
+            Catching_strangers.check_new_messages
+                bot
+                database
+                update
+        elif
+            is_new_members bot update
+        then
+            //Task.CompletedTask
+            on_new_members
+                bot
+                database
+                update
+        elif
+            is_bot_added_to_group bot update
+        then
+            on_bot_added_to_group
+                bot
+                database
+                update    
+        else
+            Task.CompletedTask
+        
             
 
 
@@ -311,15 +308,17 @@ type Update_handler()  =
             
 
               
-        member this.HandlePollingErrorAsync(
+        member this.HandleErrorAsync(
             bot: ITelegramBotClient,
             exc: Exception,
+            source,
             cancellationToken: CancellationToken 
             )
             =
-            $"the update handler caught an exception (the bot is down now?): {exc.Message}"
+            $"the update handler caught an exception (the bot is down now?) {exc.GetType()}: {exc.Message}, source={source}"
             |>Log.error|>ignore
-            raise exc
+            Task.CompletedTask
+            //raise exc
 
 
 
@@ -343,15 +342,14 @@ module Telegram_service =
         
         let cancel_token_source = new CancellationTokenSource();
         
-        let receiverOptions =
-            ReceiverOptions(
-                AllowedUpdates = Array.Empty<UpdateType>() // receive all update types except ChatMember related updates
-            )
+        // let receiverOptions = 
+        //     ReceiverOptions(
+        //         AllowedUpdates = Array.Empty<UpdateType>()
+        //     )
         
         try
             bot.ReceiveAsync(
                 Update_handler(),
-                receiverOptions,
                 cancellationToken=cancel_token_source.Token
             )|>Task.WaitAll
         with
@@ -362,6 +360,6 @@ module Telegram_service =
             $"""bot threw an exception {exc.GetType()}: {exc.Message}"""
             |>Log.error|>ignore
             //stop_bot bot cancel_token_source
-            //work_resiliently ()
-            restart_program()
+            work_resiliently ()
+            //restart_program()
         

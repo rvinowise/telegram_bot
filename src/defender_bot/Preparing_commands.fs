@@ -36,23 +36,23 @@ module Bot_commands =
 
 
 
-module Preparing_commands =
-    
-    let prepare_commands
-        (bot: ITelegramBotClient)
-        =
-        [
-            Bot_commands.load_questions_about_group,
-            "reply with json questions to bot's message to load them for questioning about a group"
-        ]
-        |>List.map(fun (command,description) ->
-            BotCommand(
-                Command = command,
-                Description = description
-            )
-        )
-            
-        |>bot.SetMyCommandsAsync
+// module Preparing_commands =
+//     
+//     let prepare_commands
+//         (bot: ITelegramBotClient)
+//         =
+//         [
+//             Bot_commands.load_questions_about_group,
+//             "reply with json questions to bot's message to load them for questioning about a group"
+//         ]
+//         |>List.map(fun (command,description) ->
+//             BotCommand(
+//                 Command = command,
+//                 Description = description
+//             )
+//         )
+//             
+//         |>bot.SetMyCommandsAsync
 
 
 

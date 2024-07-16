@@ -94,7 +94,7 @@ module Catching_strangers =
             with
             |Passed->Task.CompletedTask
             |Failed->
-                $"a foe {author} still writes messages"|>Log.error|>ignore
+                $"{author}, who faled the test, still writes messages"|>Log.error|>ignore
                 Task.CompletedTask
             |Stranger|Indecisive ->
                 catch_stranger

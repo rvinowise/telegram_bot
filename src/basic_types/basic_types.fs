@@ -17,6 +17,12 @@ module Question_id =
 
 
 type Group_id = |Group_id of int64
+type Chat_id = |Chat_id of int64
+
+module Chat_id =
+    let value (object:Chat_id) =
+        let (Chat_id value) = object
+        value
 
 module Group_id =
     let value (object:Group_id) =
@@ -26,6 +32,9 @@ module Group_id =
     let to_ChatId (group: Group_id) =
         ChatId(value group)
 
+    let to_Chat_id (group: Group_id) =
+        Chat_id(value group)
+    
     let try_from_chat (chat: ChatId) =
         if chat.Identifier.HasValue then
             chat.Identifier.Value

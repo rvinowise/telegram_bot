@@ -150,41 +150,42 @@ module Loading_configuration =
         |>ignore
     
     
-module Adding_questions_about_group =
-    let ask_for_a_group
-        (bot: ITelegramBotClient)
-        (user: User_id)
-        =
-        let button_parameters =
-            KeyboardButtonRequestChat(
-                RequestId = 666,
-                ChatIsChannel = false
-            )
-        let button = KeyboardButton.WithRequestChat("select a group",button_parameters)
+// module Adding_questions_about_group =
+    // let ask_for_a_group
+    //     (bot: ITelegramBotClient)
+    //     (user: User_id)
+    //     =
+    //     let button_parameters =
+    //         KeyboardButtonRequestChat(
+    //             RequestId = 666,
+    //             ChatIsChannel = false
+    //         )
+    //     let button = KeyboardButton.WithRequestChat("select a group",button_parameters)
+    //     
+    //     Telegram.send_message_with_buttons
+    //         bot
+    //         (User_id.to_Chat_id user)
+    //         "select a group!"
+    //         [[button]]
         
-        bot.SendTextMessageAsync(
-            chatId=User_id.asChatId user,
-            text="select a group!",
-            replyMarkup = ReplyKeyboardMarkup(button)
-        )
     
-    let ask_for_json_questions
-        (bot: ITelegramBotClient)
-        user
-        (about_group)
-        =
-        bot.SendTextMessageAsync(
-            chatId=User_id.asChatId user,
-            text="reply to this message with json questions"
-        )
-    
-    let is_message_replying_to_asking_for_json_questions
-        (bot: ITelegramBotClient)
-        =()
-    
-            
-    let try_group_for_adding_questions_from_message
-        (bot: ITelegramBotClient)
-        message
-        =
-        ()
+    // let ask_for_json_questions
+    //     (bot: ITelegramBotClient)
+    //     user
+    //     (about_group)
+    //     =
+    //     bot.SendTextMessageAsync(
+    //         chatId=User_id.to_ChatId user,
+    //         text="reply to this message with json questions"
+    //     )
+    //
+    // let is_message_replying_to_asking_for_json_questions
+    //     (bot: ITelegramBotClient)
+    //     =()
+    //
+    //         
+    // let try_group_for_adding_questions_from_message
+    //     (bot: ITelegramBotClient)
+    //     message
+    //     =
+    //     ()

@@ -18,13 +18,6 @@ module Welcoming_strangers =
     
     
     
-    let delete_welcoming
-        (bot: ITelegramBotClient)
-        chat
-        welcoming
-        =
-        bot.DeleteMessageAsync(chat, welcoming)
-    
     
     let restrict_joined_strangers
         (bot: ITelegramBotClient)
@@ -32,6 +25,7 @@ module Welcoming_strangers =
         group
         (strangers: User array)
         =
+        //"test"|>Bot_exception|>raise
         strangers
         |>Array.map (fun user ->
             user.Id
@@ -55,13 +49,13 @@ module Welcoming_strangers =
             Group_policy_database.read_language
                 database group
         
-        let buttons =
-            [|
-                InlineKeyboardButton.WithUrl(
-                    (Localised_text.text language Localised_text.contact_defender_bot),
+        let button =
+            {
+                Message_button.text =
+                    (Localised_text.text language Localised_text.contact_defender_bot)
+                callback_data =
                     $"{Settings.bot_url}?start={Callback_language.user_asked_to_join}"
-                );
-            |]
+            }
         
         let strangers_names =
             strangers
@@ -70,27 +64,28 @@ module Welcoming_strangers =
     
         Log.info $"an examining button is shown for members: {strangers_names}"
         
+        let welcoming_message =
+            (Localised_text.text
+                language
+                Localised_text.welcoming_newcomers
+            ,
+            [|strangers_names :> obj|])
+            ||>Localised_text.format
+        
         task {
-            
-            
-            let welcoming_message =
-                (Localised_text.text
-                    language
-                    Localised_text.welcoming_newcomers
-                ,
-                [|strangers_names :> obj|])
-                ||>Localised_text.format
-            
             let! welcoming =
-                bot.SendTextMessageAsync(
-                    Group_id.to_ChatId group,
-                    welcoming_message,
-                    replyMarkup=InlineKeyboardMarkup(buttons)
-                )
-            
+                Telegram.send_message_with_buttons
+                    bot
+                    (Group_id.to_Chat_id group)
+                    welcoming_message
+                    [[button]]
+                
             Task.Run(fun () ->
-                Task.Delay 40000 |>Task.WaitAll
-                bot.DeleteMessageAsync(Group_id.to_ChatId group, welcoming.MessageId)
+                Task.Delay 30000 |>Task.WaitAll
+                Telegram.delete_message
+                    bot
+                    (Group_id.to_Chat_id group)
+                    welcoming.MessageId
             )|>ignore
             
             return welcoming
@@ -117,10 +112,10 @@ module Welcoming_strangers =
                 database
                 group
                 update.Message.Chat.Title
-            task {
-                restrict_joined_strangers bot database group strangers |>ignore
-                show_examining_button bot database group strangers |>ignore
-            } :> Task
+                
+            restrict_joined_strangers bot database group strangers |>ignore
+            show_examining_button bot database group strangers :> Task
+                
         else
             Task.CompletedTask
     
@@ -132,36 +127,11 @@ module Welcoming_strangers =
         group_language
         click
         =
-        bot.AnswerCallbackQueryAsync(
-            click,
-            (Localised_text.text group_language Localised_text.dismissing_click )
-        )
+        Localised_text.text
+            group_language
+            Localised_text.dismissing_click
+        |>Telegram.answer_callback
+            bot
+            click
         
-            
-    // let parse_user_asking_to_join
-    //     (bot: ITelegramBotClient)
-    //     database
-    //     user
-    //     (callback_data: JsonValue)
-    //     (callback_query: CallbackQuery)
-    //     =
-    //     try
-    //         let joining_group =
-    //             callback_data.GetProperty(Callback_language.group).AsInteger64()
-    //             |>Group_id
-    //       
-    //         Group_gist_database.write_title
-    //             database
-    //             joining_group
-    //             callback_query.Message.Chat.Title
-    //             
-    //         respond_to_user_clicking_joining_button
-    //             bot
-    //             database
-    //             user
-    //             joining_group
-    //             callback_query.Id
-    //     with
-    //     | :? JsonException as exc ->
-    //         $"json callback {callback_data} of asking to join a group is bad: {exc.Message}"
-    //         |>Log.error|>Bot_exception|>raise
+        

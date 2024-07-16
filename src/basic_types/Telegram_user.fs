@@ -12,8 +12,11 @@ module User_id =
         let (User_id value) = object
         value
 
-    let asChatId (user: User_id) =
+    let to_ChatId (user: User_id) =
         ChatId(value user)
+        
+    let to_Chat_id (group: User_id) =
+        Chat_id(value group)
 
 [<CLIMutable>]
 type Telegram_user_for_db =
@@ -103,7 +106,7 @@ module Telegram_user =
         
     let precise_destription_from_api_user (user:User) =
         let is_premium =
-            if (user.IsPremium.GetValueOrDefault(false) = true) then
+            if user.IsPremium then
                 "premium"
             else ""
         $"{user.FirstName} {user.LastName} {user.Username} id={user.Id} {is_premium}"

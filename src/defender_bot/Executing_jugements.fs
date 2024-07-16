@@ -21,27 +21,10 @@ module Executing_jugements =
         stranger
         =
         $"restricting a joined stranger {stranger} in group {group}"|>Log.info
-        let muted_permissions =
-            ChatPermissions(
-                CanSendMessages = false,
-                CanSendOtherMessages = false,
-                CanChangeInfo = false,
-                CanInviteUsers = false,
-                CanManageTopics = false,
-                CanPinMessages = false,
-                CanSendAudios = false,
-                CanSendDocuments = false,
-                CanSendPhotos = false,
-                CanSendPolls = false,
-                CanSendVideos = false,
-                CanSendVideoNotes = false,
-                CanSendVoiceNotes = false,
-                CanAddWebPagePreviews = false
-            )
-        bot.RestrictChatMemberAsync(
-            Group_id.value group,
-            User_id.value stranger,
-            muted_permissions)
+        Telegram.mute_user
+            bot
+            group
+            stranger
     
     let lift_restrictions
         (bot: ITelegramBotClient)
@@ -49,28 +32,11 @@ module Executing_jugements =
         (user)
         =
         $"lifting restrictions from user {user} in group {group}"|>Log.info
-        let regular_permissions =
-            ChatPermissions(
-                CanSendMessages = true,
-                CanSendOtherMessages = true,
-                CanChangeInfo = false,
-                CanInviteUsers = true,
-                CanManageTopics = false,
-                CanPinMessages = false,
-                CanSendAudios = true,
-                CanSendDocuments = true,
-                CanSendPhotos = true,
-                CanSendPolls = true,
-                CanSendVideos = true,
-                CanSendVideoNotes = true,
-                CanSendVoiceNotes = true,
-                CanAddWebPagePreviews = true
-            )
-        bot.RestrictChatMemberAsync(
-            Group_id.value group,
-            User_id.value user,
-            regular_permissions
-        )
+        
+        Telegram.unmute_user
+            bot
+            group
+            user
     
     let group_invite_link 
         title
@@ -102,26 +68,29 @@ module Executing_jugements =
                     group_title
                     group.InviteLink
             
-            let combined_message =
+            return 
                 if all_seized_messages <> "" then
-                    [|
-                        all_seized_messages :> obj
-                        group_url :> obj
-                    |]
-                    |>Localised_text.text_param
-                          language
-                          Localised_text.answering_success_with_returging_message
+                    Localised_text.text_param
+                        language
+                        Localised_text.answering_success_with_returning_message
+                        [|group_url|]
+                    |>Telegram.send_message
+                        bot
+                        (User_id.to_Chat_id user)
+                    |>ignore
+                    
+                    Telegram.send_message
+                        bot
+                        (User_id.to_Chat_id user)
+                        all_seized_messages
                 else
                     Localised_text.text_param
                           language
                           Localised_text.answering_success_without_returning_message
                           [|group_url|]
-                          
-            bot.SendTextMessageAsync(
-                (User_id.asChatId user),
-                combined_message,
-                parseMode = ParseMode.Markdown
-            )|>ignore
+                    |>Telegram.send_message
+                        bot
+                        (User_id.to_Chat_id user)
         }
         
     let make_friend
@@ -140,18 +109,15 @@ module Executing_jugements =
         Unauthorised_strangers_database.remove_stranger
             database group user
         
-        task {
-            lift_restrictions bot group user |>ignore
-            
-            announce_passing_test
-                bot
-                database
-                group
-                user
-                language
-                group_title
-            |>ignore
-        }
+        lift_restrictions bot group user |>ignore
+        
+        announce_passing_test
+            bot
+            database
+            group
+            user
+            language
+            group_title
         
     let make_foe
         (bot: ITelegramBotClient)
@@ -170,14 +136,17 @@ module Executing_jugements =
             database group user
         
         task {
-            bot.BanChatMemberAsync(
-                Group_id.value group, 
-                User_id.value user
-            )|>ignore
-            bot.SendTextMessageAsync(
-                (User_id.asChatId user),
+            Telegram.ban_user
+                bot
+                group
+                user
+            |>ignore
+            
+            Telegram.send_message
+                bot
+                (User_id.to_Chat_id user)
                 (Localised_text.text_param language Localised_text.answering_fail [|group_title|])
-            )|>ignore
+            |>ignore
         }
         
         
@@ -197,11 +166,11 @@ module Executing_jugements =
         Unauthorised_strangers_database.remove_stranger
             database group user
         
-        bot.SendTextMessageAsync(
-            (User_id.asChatId user),
+        Telegram.send_message
+            bot
+            (User_id.to_Chat_id user)
             (Localised_text.text_param language Localised_text.answering_fail [|group_title|])
-        )
-            
+        
         
         
         

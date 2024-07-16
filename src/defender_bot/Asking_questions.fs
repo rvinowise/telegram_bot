@@ -76,23 +76,23 @@ module Asking_questions =
             question.answers
             |>shuffle_sequence
             |>Seq.map(fun answer ->
-                let button_id =
-                    write_callback_data_for_answer_button database question answer
-                    
-                InlineKeyboardButton.WithCallbackData(
-                    answer.text,
-                    (Button_id.value button_id)
-                );
-            )
-            |>Array.ofSeq
-            |>Array.map (fun item -> Array.singleton item :> Generic.IEnumerable<InlineKeyboardButton>)
+                {
+                    Message_button.text = answer.text
+                    callback_data =
+                        write_callback_data_for_answer_button
+                            database
+                            question
+                            answer
+                        |>Button_id.value
+                }
+            )|>Seq.map (Seq.singleton)
         
-        bot.SendTextMessageAsync(
-            (User_id.asChatId target),
-            (question.text),
-            replyMarkup=InlineKeyboardMarkup(buttons)
-        )
-    
+        Telegram.send_message_with_buttons
+            bot
+            (User_id.to_Chat_id target)
+            question.text
+            buttons
+        
     
         
     let questioning_final_conclusion
@@ -178,7 +178,7 @@ module Asking_questions =
         about_group
         (stranger: User_id)
         =
-        let stranger_chat = (User_id.asChatId stranger)
+        //let stranger_chat = (User_id.to_ChatId stranger)
         
         let group_language =
             Group_policy_database.read_language
@@ -195,10 +195,11 @@ module Asking_questions =
                 [|group_title :> obj|]
         
         task {
-            bot.SendTextMessageAsync(
-                stranger_chat,
+            Telegram.send_message
+                bot
+                (User_id.to_Chat_id stranger)
                 rules_message
-            )|>ignore
+            |>ignore
             
             return
                 ask_new_question_of_user
@@ -312,10 +313,11 @@ module Asking_questions =
             if isNull callback_query.Message then
                 Task.CompletedTask
             else
-                bot.DeleteMessageAsync(
-                    (User_id.asChatId user),
+                Telegram.delete_message
+                    bot
+                    (User_id.to_Chat_id user)
                     callback_query.Message.MessageId
-                )
+               
             |>Task.WaitAll
             
             parse_answered_question

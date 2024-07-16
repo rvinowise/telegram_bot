@@ -55,7 +55,10 @@ module Seizing_messages =
             $"message {message_id} from stranger {author.Id} in group {group} doesn't have text, deleting it without saving"
             |>Log.info
         
-        bot.DeleteMessageAsync(Group_id.to_ChatId group, message_id)
+        Telegram.delete_message
+            bot
+            (Group_id.to_Chat_id group)
+            message_id
     
     let publish_seized_messages
         (bot: ITelegramBotClient)
@@ -86,11 +89,11 @@ module Seizing_messages =
             {author_description} wrote:\n{all_seized_messages}
             
             """
-        
-        bot.SendTextMessageAsync(
-            (Group_id.value group_id),
+        Telegram.send_message
+            bot
+            (Group_id.to_Chat_id group_id)
             combined_message
-        )
+        
         
         
     
